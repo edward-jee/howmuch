@@ -39,6 +39,7 @@
     </Window.Resources>
     <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
         <Grid>
+        <Grid x:Name="WidgetContent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="48"/>
                 <RowDefinition Height="*"/>
@@ -46,7 +47,7 @@
             <Grid Background="{DynamicResource HeaderBrush}">
                 <Border Height="2" VerticalAlignment="Bottom" Background="{DynamicResource AccentBrush}"
                         Visibility="{DynamicResource DecorationVisibility}" IsHitTestVisible="False"/>
-                <Border Background="Transparent" Margin="0,0,78,0"
+                <Border Background="Transparent" Margin="0,0,112,0"
                         MouseLeftButtonDown="Header_MouseLeftButtonDown" Cursor="SizeAll"
                         ToolTip="제목 표시줄을 드래그하여 이동">
                     <StackPanel Orientation="Horizontal" Margin="16,0" VerticalAlignment="Center">
@@ -58,11 +59,14 @@
                     </StackPanel>
                 </Border>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="4">
+                    <Button Content="?" Width="34" Background="Transparent" Foreground="{DynamicResource HeaderInkBrush}"
+                            BorderThickness="0" Click="Help_Click" ToolTip="단축키 안내 (F1)"
+                            AutomationProperties.Name="단축키 안내"/>
                     <Button Content="−" Width="34" Background="Transparent" Foreground="{DynamicResource HeaderInkBrush}"
-                            BorderThickness="0" Click="Minimize_Click" ToolTip="작업 표시줄로 최소화"
+                            BorderThickness="0" Click="Minimize_Click" ToolTip="작업 표시줄로 최소화 (Ctrl+M)"
                             AutomationProperties.Name="위젯 최소화"/>
                     <Button Content="×" Width="34" Background="Transparent" Foreground="{DynamicResource HeaderInkBrush}"
-                            BorderThickness="0" Click="Close_Click" ToolTip="닫기 · 다시 보려면 앱을 실행하세요"
+                            BorderThickness="0" Click="Close_Click" ToolTip="닫기 (Ctrl+W / Alt+F4) · 다시 보려면 앱을 실행하세요"
                             AutomationProperties.Name="위젯 닫기"/>
                 </StackPanel>
             </Grid>
@@ -73,26 +77,28 @@
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
                     <TextBox x:Name="PriceInput" Text="0" FontSize="21" Margin="0,0,8,0" MaxLength="24"
                              TextChanged="Input_Changed" AutomationProperties.Name="선택한 통화의 상품 가격"
-                             ToolTip="현지 세금과 현지 배송비를 포함하세요. 소수점은 마침표(.)를 사용하세요."/>
+                             ToolTip="가격 입력: Ctrl+L · 현지 세금과 현지 배송비 포함 · 소수점은 마침표(.) 사용"/>
                     <ComboBox x:Name="CurrencyInput" Grid.Column="1" SelectionChanged="Currency_Changed"
-                              AutomationProperties.Name="통화"/>
+                              AutomationProperties.Name="통화" ToolTip="Ctrl+1: JPY · Ctrl+2: USD · Ctrl+3: EUR"/>
                 </Grid>
                 <CheckBox x:Name="UsInput" Content="미국에서 발송" Margin="0,14,0,0"
                           Checked="Options_Changed" Unchecked="Options_Changed"
-                          ToolTip="결제 통화와 관계없이 실제 발송 국가를 선택하세요."/>
+                          ToolTip="미국 발송 선택·해제: Ctrl+U · 결제 통화와 관계없이 실제 발송 국가를 선택하세요."/>
                 <RadioButton x:Name="GeneralGoodsInput" GroupName="GoodsType" IsChecked="True"
                              Content="일반 물품(목록 통관 대상)" Margin="0,12,0,0"
-                             Checked="Options_Changed"/>
+                             Checked="Options_Changed" ToolTip="일반 물품 선택 (Ctrl+G)"/>
                 <RadioButton x:Name="ExcludedGoodsInput" GroupName="GoodsType" Margin="0,8,0,0"
-                             Checked="Options_Changed">
+                             Checked="Options_Changed" ToolTip="목록통관 제외 물품 선택 (Ctrl+Shift+G)">
                     <TextBlock Text="식품, 건강기능식품 등 목록통관 제외 물품" TextWrapping="Wrap"/>
                 </RadioButton>
                 <TextBlock x:Name="ThresholdText" FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,0"/>
-                <Expander x:Name="AdvancedSettings" Header="추가 설정 · 배송비 / 관세율" FontSize="12" Margin="0,10,0,0">
+                <Expander x:Name="AdvancedSettings" Header="추가 설정 · 배송비 / 관세율" FontSize="12" Margin="0,10,0,0"
+                          ToolTip="추가 설정 펼치기·접기 (Ctrl+,)">
                     <StackPanel>
                         <TextBlock Text="화면 테마" FontSize="11" Margin="0,10,0,4"/>
                         <ComboBox x:Name="ThemeInput" DisplayMemberPath="Label" SelectedValuePath="Id"
-                                  SelectionChanged="Theme_Changed" AutomationProperties.Name="화면 테마"/>
+                                  SelectionChanged="Theme_Changed" AutomationProperties.Name="화면 테마"
+                                  ToolTip="갸루·클래식 테마 전환 (Ctrl+T)"/>
                 <Grid Margin="0,10,0,0">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,8,0">
@@ -155,7 +161,8 @@
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="68"/></Grid.ColumnDefinitions>
                     <TextBlock x:Name="RateStatus" Text="환율을 불러오는 중…" FontSize="11" Foreground="{DynamicResource MutedBrush}"
                                TextWrapping="Wrap" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite"/>
-                    <Button x:Name="RefreshButton" Grid.Column="1" Content="새로고침" FontSize="11" Click="Refresh_Click"/>
+                    <Button x:Name="RefreshButton" Grid.Column="1" Content="새로고침" FontSize="11" Click="Refresh_Click"
+                            ToolTip="환율 새로고침 (F5)"/>
                 </Grid>
                 <TextBlock x:Name="PersistenceStatus" FontSize="10" Foreground="{DynamicResource ErrorBrush}" TextWrapping="Wrap"/>
                 <TextBlock FontSize="10" Foreground="{DynamicResource SubtleBrush}" TextWrapping="Wrap" Margin="0,9,0,0"
@@ -166,6 +173,32 @@
                 </TextBlock>
             </StackPanel>
             </ScrollViewer>
+        </Grid>
+        <Grid x:Name="HelpOverlay" Visibility="Collapsed" Background="#77000000"
+              KeyboardNavigation.TabNavigation="Cycle">
+            <Border Margin="16" Padding="16" VerticalAlignment="Center" Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="{DynamicResource CardRadius}">
+                <StackPanel>
+                    <TextBlock Text="단축키 안내" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="위젯 창이 선택되어 있을 때 사용할 수 있어요." FontSize="11"
+                               Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,14" TextWrapping="Wrap"/>
+                    <ItemsControl x:Name="ShortcutList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,9">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="104"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Keys}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Description}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="Tab 이동 · Ctrl+A/C/V 입력 편집 · Alt+F4 종료" FontSize="10"
+                               Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,12"/>
+                    <Button x:Name="HelpCloseButton" Content="닫기 (Esc)" Click="HelpClose_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
         </Grid>
     </Border>
 </Window>

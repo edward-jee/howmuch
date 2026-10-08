@@ -19,7 +19,8 @@ public sealed record RateResult(ExchangeRates Rates, bool IsCached);
 
 public sealed class ExchangeRateService(HttpClient client, LocalStore store)
 {
-    public static readonly string[] Currencies = ["JPY", "USD", "EUR"];
+    public static readonly string[] Currencies =
+        ["JPY", "USD", "EUR", "CNY", "GBP", "AUD", "CAD", "CHF", "HKD", "SGD", "TWD", "THB", "NZD", "VND"];
 
     public ExchangeRates? ReadCached(string currency)
     {

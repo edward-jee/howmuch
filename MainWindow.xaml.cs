@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using howmuch.Core;
 using howmuch.Services;
 using howmuch.Themes;
+using howmuch.Shortcuts;
 
 namespace howmuch;
 
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
     private ExchangeRates? rates;
     private bool ready;
     private bool closing;
+    private IInputElement? helpReturnFocus;
 
     public MainWindow() : this(new LocalStore(), new HttpClient { Timeout = TimeSpan.FromSeconds(12) }) { }
 
@@ -32,6 +34,22 @@ public partial class MainWindow : Window
         this.client = client;
         rateService = new(client, store);
         InitializeComponent();
+        ShortcutList.ItemsSource = WidgetShortcuts.All;
+        foreach (var shortcut in WidgetShortcuts.All)
+        {
+            InputBindings.Add(new KeyBinding(shortcut.Command, new KeyGesture(shortcut.Key, shortcut.Modifiers)));
+            CommandBindings.Add(new CommandBinding(shortcut.Command,
+                (_, _) => ExecuteShortcut(shortcut.Action),
+                (_, e) =>
+                {
+                    bool helpAction = shortcut.Action is ShortcutAction.Help or ShortcutAction.DismissHelp;
+                    e.CanExecute = ready && !closing &&
+                        (HelpOverlay.Visibility != Visibility.Visible || helpAction) &&
+                        (shortcut.Action != ShortcutAction.Refresh || RefreshButton.IsEnabled) &&
+                        (shortcut.Action != ShortcutAction.DismissHelp || HelpOverlay.Visibility == Visibility.Visible);
+                    e.Handled = true;
+                }));
+        }
         var preferences = store.Read<Preferences>("settings.json") ?? new();
         CurrencyInput.ItemsSource = ExchangeRateService.Currencies;
         CurrencyInput.SelectedItem = ExchangeRateService.Currencies.Contains(preferences.Currency) ? preferences.Currency : "JPY";
@@ -56,6 +74,40 @@ public partial class MainWindow : Window
 
     private string Currency => CurrencyInput.SelectedItem as string ?? "JPY";
     private string SelectedTheme => ThemeInput.SelectedValue as string ?? ThemeManager.DefaultTheme;
+
+    private async void ExecuteShortcut(ShortcutAction action)
+    {
+        switch (action)
+        {
+            case ShortcutAction.FocusPrice: PriceInput.Focus(); PriceInput.SelectAll(); break;
+            case ShortcutAction.Jpy: CurrencyInput.SelectedItem = "JPY"; break;
+            case ShortcutAction.Usd: CurrencyInput.SelectedItem = "USD"; break;
+            case ShortcutAction.Eur: CurrencyInput.SelectedItem = "EUR"; break;
+            case ShortcutAction.ToggleUsa: UsInput.IsChecked = UsInput.IsChecked != true; break;
+            case ShortcutAction.GeneralGoods: GeneralGoodsInput.IsChecked = true; break;
+            case ShortcutAction.ExcludedGoods: ExcludedGoodsInput.IsChecked = true; break;
+            case ShortcutAction.Refresh: if (RefreshButton.IsEnabled) await LoadRatesAsync(); break;
+            case ShortcutAction.ToggleTheme: ThemeInput.SelectedValue = SelectedTheme == "gyaru" ? "classic" : "gyaru"; break;
+            case ShortcutAction.ToggleSettings: AdvancedSettings.IsExpanded = !AdvancedSettings.IsExpanded; break;
+            case ShortcutAction.Minimize: WindowState = WindowState.Minimized; break;
+            case ShortcutAction.Close: Close(); break;
+            case ShortcutAction.Help: SetHelpVisible(HelpOverlay.Visibility != Visibility.Visible); break;
+            case ShortcutAction.DismissHelp: SetHelpVisible(false); break;
+        }
+    }
+
+    private void SetHelpVisible(bool visible)
+    {
+        if (visible) helpReturnFocus = Keyboard.FocusedElement;
+        HelpOverlay.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        WidgetContent.IsEnabled = !visible;
+        if (visible) HelpCloseButton.Focus();
+        else if (helpReturnFocus is not null) Keyboard.Focus(helpReturnFocus);
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    private void Help_Click(object sender, RoutedEventArgs e) => SetHelpVisible(true);
+    private void HelpClose_Click(object sender, RoutedEventArgs e) => SetHelpVisible(false);
 
     private void Theme_Changed(object sender, SelectionChangedEventArgs e)
     {

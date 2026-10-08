@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -17,8 +18,9 @@ internal static class Program
         string directory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "HowMuch-widget-" + Guid.NewGuid());
         var store = new LocalStore(directory);
         System.IO.Directory.CreateDirectory(directory);
-        System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "settings.json"), "{\"Currency\":\"CNY\"}");
-        var window = new MainWindow(store, new HttpClient(new DelayedRates()));
+        System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "settings.json"), "{\"Currency\":\"XYZ\"}");
+        var handler = new DelayedRates();
+        var window = new MainWindow(store, new HttpClient(handler));
         int exitCode = 0;
         window.Loaded += async (_, _) =>
         {
@@ -28,7 +30,8 @@ internal static class Program
                 window.UpdateLayout();
                 var currency = (ComboBox)window.FindName("CurrencyInput");
                 Require((string)currency.SelectedItem == "JPY", "Default JPY");
-                Require(currency.Items.Cast<string>().SequenceEqual(new[] { "JPY", "USD", "EUR" }), "Only prioritized source currencies");
+                Require(currency.Items.Cast<string>().Take(3).SequenceEqual(new[] { "JPY", "USD", "EUR" }) &&
+                    currency.Items.Count == 14, "Prioritized and expanded source currencies");
                 Require(((RadioButton)window.FindName("GeneralGoodsInput")).IsChecked == true, "Default general goods");
                 Require(((Expander)window.FindName("AdvancedSettings")).IsExpanded == false, "Optional settings initially hidden");
                 Require(window.Title == "얼마일까 · 해외직구 계산기", "Korean window title");
@@ -79,6 +82,60 @@ internal static class Program
                 CapturePreview(window, "gyaru");
                 Require(window.Background is LinearGradientBrush && store.Read<Preferences>("settings.json")?.Theme == "gyaru", "Switch back to gyaru and persist");
                 advanced.IsExpanded = false;
+                window.Activate();
+                price.Focus();
+                RunShortcut(window, Key.L, ModifierKeys.Control);
+                Require(price.IsKeyboardFocused && price.SelectedText == price.Text, "Shortcut focuses and selects price");
+                RunShortcut(window, Key.U, ModifierKeys.Control);
+                Require(((CheckBox)window.FindName("UsInput")).IsChecked == false, "Shortcut toggles US shipment");
+                RunShortcut(window, Key.U, ModifierKeys.Control);
+                RunShortcut(window, Key.G, ModifierKeys.Control);
+                Require(((RadioButton)window.FindName("GeneralGoodsInput")).IsChecked == true &&
+                    ((TextBlock)window.FindName("ThresholdText")).Text.Contains("200"), "Shortcut selects general goods and recalculates");
+                RunShortcut(window, Key.G, ModifierKeys.Control | ModifierKeys.Shift);
+                Require(((RadioButton)window.FindName("ExcludedGoodsInput")).IsChecked == true &&
+                    ((TextBlock)window.FindName("ThresholdText")).Text.Contains("150"), "Shortcut selects excluded goods and recalculates");
+                RunShortcut(window, Key.OemComma, ModifierKeys.Control);
+                Require(advanced.IsExpanded, "Shortcut opens settings");
+                RunShortcut(window, Key.OemComma, ModifierKeys.Control);
+                RunShortcut(window, Key.T, ModifierKeys.Control);
+                Require((string)theme.SelectedValue == "classic", "Shortcut switches theme");
+                RunShortcut(window, Key.T, ModifierKeys.Control);
+                RunShortcut(window, Key.D1, ModifierKeys.Control);
+                await Task.Delay(100);
+                Require((string)currency.SelectedItem == "JPY", "Shortcut selects JPY");
+                RunShortcut(window, Key.D3, ModifierKeys.Control);
+                await Task.Delay(300);
+                Require((string)currency.SelectedItem == "EUR", "Shortcut selects EUR");
+                RunShortcut(window, Key.D2, ModifierKeys.Control);
+                await Task.Delay(100);
+                Require((string)currency.SelectedItem == "USD" && store.Read<Preferences>("settings.json")?.Currency == "USD", "Shortcut selects and saves USD");
+                currency.SelectedItem = "CNY";
+                await Task.Delay(100);
+                Require(((TextBlock)window.FindName("PriceResult")).Text == "₩33,250" &&
+                    store.Read<Preferences>("settings.json")?.Currency == "CNY", "Additional currency conversion and persistence");
+                currency.SelectedItem = "VND";
+                await Task.Delay(100);
+                Require(((TextBlock)window.FindName("PriceResult")).Text == "₩9" &&
+                    ((TextBlock)window.FindName("VatResult")).Text == "₩0", "Small decimal VND rates and USD-based exemption");
+                RunShortcut(window, Key.D2, ModifierKeys.Control);
+                await Task.Delay(100);
+                int requests = handler.RequestCount;
+                RunShortcut(window, Key.F5, ModifierKeys.None);
+                Require(!FindShortcut(window, Key.F5, ModifierKeys.None).CanExecute(null, window), "Refresh shortcut disabled while loading");
+                await Task.Delay(100);
+                Require(handler.RequestCount == requests + 1, "Refresh shortcut requests fresh rates");
+                RunShortcut(window, Key.F1, ModifierKeys.None);
+                Require(((Grid)window.FindName("HelpOverlay")).Visibility == Visibility.Visible &&
+                    ((Button)window.FindName("HelpCloseButton")).IsKeyboardFocused, "Help shortcut opens accessible Korean guide");
+                Require(!FindShortcut(window, Key.T, ModifierKeys.Control).CanExecute(null, window), "Help prevents shortcuts changing covered inputs");
+                window.UpdateLayout();
+                CapturePreview(window, "shortcuts");
+                RunShortcut(window, Key.Escape, ModifierKeys.None);
+                Require(((Grid)window.FindName("HelpOverlay")).Visibility == Visibility.Collapsed && price.IsKeyboardFocused, "Escape closes guide and restores focus");
+                RunShortcut(window, Key.M, ModifierKeys.Control);
+                Require(window.WindowState == WindowState.Minimized, "Shortcut minimizes widget");
+                window.WindowState = WindowState.Normal;
                 window.UpdateLayout();
                 foreach (var element in Descendants(window).OfType<FrameworkElement>()
                     .Where(e => e.IsVisible && e.ActualHeight > 0 && e is TextBlock or TextBox or ComboBox or Button or CheckBox or RadioButton))
@@ -87,10 +144,12 @@ internal static class Program
                     Require(location.Y + element.ActualHeight <= window.ActualHeight + 1, $"Layout fits: {element.GetType().Name} {element.Name} ends at {location.Y + element.ActualHeight:0.0}");
                     Require(location.X >= -1 && location.X + element.ActualWidth <= window.ActualWidth + 1, $"Horizontal layout fits: {element.GetType().Name} {element.Name}");
                 }
-                Console.WriteLine("Passed native Korean WPF layout, currency priority, customs options, themes, persistence, and request-race checks.");
+                RunShortcut(window, Key.W, ModifierKeys.Control);
+                Require(!window.IsVisible, "Shortcut closes widget");
+                Console.WriteLine("Passed native Korean WPF layout, customs options, themes, shortcuts, persistence, and request-race checks.");
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); exitCode = 1; }
-            finally { window.Close(); }
+            finally { if (window.IsVisible) window.Close(); }
         };
         new Application().Run(window);
         if (System.IO.Directory.Exists(directory)) System.IO.Directory.Delete(directory, true);
@@ -100,6 +159,18 @@ internal static class Program
     private static void Require(bool condition, string message)
     {
         if (!condition) throw new Exception(message);
+    }
+
+    private static RoutedCommand FindShortcut(Window window, Key key, ModifierKeys modifiers) =>
+        (RoutedCommand)window.InputBindings.OfType<KeyBinding>()
+            .Single(binding => binding.Key == key && binding.Modifiers == modifiers).Command;
+
+    private static void RunShortcut(Window window, Key key, ModifierKeys modifiers)
+    {
+        var command = FindShortcut(window, key, modifiers);
+        IInputElement target = Keyboard.FocusedElement ?? window;
+        Require(command.CanExecute(null, target), $"Shortcut available: {modifiers}+{key}");
+        command.Execute(null, target);
     }
 
     private static void CapturePreview(Window window, string name)
@@ -127,18 +198,21 @@ internal static class Program
 
     private sealed class DelayedRates : HttpMessageHandler
     {
+        public int RequestCount { get; private set; }
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
+            RequestCount++;
             string currency = request.RequestUri!.Query.Split("base=")[1].Split('&')[0];
             // EUR deliberately completes after USD to exercise cancellation and currency guarding.
             await Task.Delay(currency == "EUR" ? 200 : 30, token);
             string date = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            string krw = currency == "JPY" ? "9.5" : "1400";
+            string krw = currency switch { "JPY" => "9.5", "CNY" => "190", "VND" => "0.05", _ => "1400" };
+            string usd = currency switch { "CNY" => "0.14", "VND" => "0.00004", _ => "0.0067" };
             return new(HttpStatusCode.OK)
             {
                 Content = new StringContent($$"""
                     [{"date":"{{date}}","base":"{{currency}}","quote":"KRW","rate":{{krw}}},
-                     {"date":"{{date}}","base":"{{currency}}","quote":"USD","rate":0.0067}]
+                     {"date":"{{date}}","base":"{{currency}}","quote":"USD","rate":{{usd}}}]
                     """)
             };
         }

@@ -31,7 +31,8 @@ Check(!ImportCalculator.Calculate(175, 0, 1400, 1, 8, true, GoodsType.ListExclud
 Check(ImportCalculator.Calculate(150, 0, 1400, 1, 8, true, GoodsType.ListExcluded).IsExempt, "Excluded goods retain $150 exemption");
 Check(ImportCalculator.Calculate(25000, 0, 9.5m, .006m, 8, false, GoodsType.ListEligible).IsExempt, "JPY threshold uses USD conversion");
 Check(!ImportCalculator.Calculate(151, 0, 1500, 1.1m, 8, false, GoodsType.ListEligible).IsExempt, "EUR threshold uses USD conversion");
-Check(ExchangeRateService.Currencies.SequenceEqual(new[] { "JPY", "USD", "EUR" }), "Supported currency priority");
+Check(ExchangeRateService.Currencies.Take(3).SequenceEqual(new[] { "JPY", "USD", "EUR" }), "Supported currency priority");
+Check(ExchangeRateService.Currencies.Skip(3).SequenceEqual(new[] { "CNY", "GBP", "AUD", "CAD", "CHF", "HKD", "SGD", "TWD", "THB", "NZD", "VND" }), "Representative additional currencies");
 Check(ImportCalculator.TryAmount("12,345.67", out var amount) && amount == 12345.67m, "Grouped decimal parsing");
 foreach (var invalid in new[] { "", "-1", "NaN", "1,2", "1e6", "1.23456", "1000000001", "1 234", "." })
     Check(!ImportCalculator.TryAmount(invalid, out _), $"Reject {invalid}");
@@ -70,6 +71,18 @@ try
     Check(offline.ReadCached("JPY") is null, "Reject wrong currency cache");
     store.Write("rates-JPY.json", live.Rates with { Krw = -1 });
     Check(offline.ReadCached("JPY") is null, "Reject invalid rate cache");
+    foreach (string currency in ExchangeRateService.Currencies)
+    {
+        using var currencyClient = new HttpClient(new FakeHandler($$"""
+            [{"date":"{{date}}","base":"{{currency}}","quote":"KRW","rate":0.05},
+             {"date":"{{date}}","base":"{{currency}}","quote":"USD","rate":0.00004}]
+            """));
+        var currencyService = new ExchangeRateService(currencyClient, store);
+        var result = await currencyService.GetAsync(currency, default);
+        Check(result.Rates.Currency == currency && result.Rates.Krw == .05m &&
+            result.Rates.Usd == (currency == "USD" ? 1m : .00004m), $"KRW and USD rates for {currency}");
+        Check(currencyService.ReadCached(currency)?.Currency == currency, $"Independent cache for {currency}");
+    }
     using var cancelled = new CancellationTokenSource();
     cancelled.Cancel();
     try { await offline.GetAsync("JPY", cancelled.Token); Check(false, "Cancellation must propagate"); }
