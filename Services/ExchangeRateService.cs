@@ -19,7 +19,7 @@ public sealed record RateResult(ExchangeRates Rates, bool IsCached);
 
 public sealed class ExchangeRateService(HttpClient client, LocalStore store)
 {
-    public static readonly string[] Currencies = ["JPY", "USD", "EUR", "CNY", "GBP", "AUD", "CAD", "CHF", "HKD", "SGD", "TWD", "THB", "KRW"];
+    public static readonly string[] Currencies = ["JPY", "USD", "EUR"];
 
     public ExchangeRates? ReadCached(string currency)
     {
@@ -38,8 +38,7 @@ public sealed class ExchangeRateService(HttpClient client, LocalStore store)
                 ?? throw new JsonException("Missing rates.");
             if (rows.Any(row => row is null)) throw new JsonException("Null rate row.");
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var krw = currency == "KRW" ? new RateRow(today, currency, "KRW", 1) :
-                rows.Single(r => r!.Base == currency && r.Quote == "KRW")!;
+            var krw = rows.Single(r => r!.Base == currency && r.Quote == "KRW")!;
             var usd = currency == "USD" ? new RateRow(today, currency, "USD", 1) :
                 rows.Single(r => r!.Base == currency && r.Quote == "USD")!;
             var rates = new ExchangeRates(currency, krw.Rate, usd.Rate, krw.Date, usd.Date, DateTimeOffset.UtcNow);

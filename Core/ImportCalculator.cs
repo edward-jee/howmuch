@@ -2,6 +2,8 @@ using System.Globalization;
 
 namespace howmuch.Core;
 
+public enum GoodsType { ListEligible, ListExcluded }
+
 public sealed record ImportEstimate(decimal PriceKrw, decimal ShippingKrw, decimal DutyKrw,
     decimal VatKrw, bool IsExempt)
 {
@@ -11,6 +13,9 @@ public sealed record ImportEstimate(decimal PriceKrw, decimal ShippingKrw, decim
 
 public static class ImportCalculator
 {
+    public static decimal ExemptionThresholdUsd(bool shippedFromUsa, GoodsType goodsType) =>
+        shippedFromUsa && goodsType == GoodsType.ListEligible ? 200m : 150m;
+
     // Deliberately unambiguous: dot decimals, optional correctly grouped commas.
     public static bool TryAmount(string text, out decimal amount)
     {
@@ -24,13 +29,13 @@ public static class ImportCalculator
     }
 
     public static ImportEstimate Calculate(decimal price, decimal shipping, decimal krwRate,
-        decimal usdRate, decimal dutyPercent, bool usListClearance, bool exemptionEligible)
+        decimal usdRate, decimal dutyPercent, bool shippedFromUsa, GoodsType goodsType)
     {
         if (price < 0 || shipping < 0 || krwRate <= 0 || usdRate <= 0 || dutyPercent < 0 || dutyPercent > 100)
             throw new ArgumentOutOfRangeException(nameof(price));
         decimal value = price * krwRate;
         decimal freight = shipping * krwRate;
-        bool exempt = exemptionEligible && price * usdRate <= (usListClearance ? 200m : 150m);
+        bool exempt = price * usdRate <= ExemptionThresholdUsd(shippedFromUsa, goodsType);
         decimal duty = exempt ? 0 : (value + freight) * dutyPercent / 100m;
         decimal vat = exempt ? 0 : (value + freight + duty) * 0.10m;
         // Estimate rounded to won; actual customs assessment uses its own rounding rules.
