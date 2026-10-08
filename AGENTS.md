@@ -3,7 +3,7 @@
 ## Product
 Build a small native Windows 11 WPF widget for foreign-price conversion to KRW and estimated Korean personal-import charges. Keep it always on top, fixed size, draggable, keyboard accessible, and easy to dismiss. Default currency is JPY; persist the last selection locally.
 - All user-facing labels, tooltips, accessibility names, validation, and status messages must be Korean. Currency codes may remain ISO codes.
-- Support only JPY, USD, EUR in that order. Unsupported saved currencies fall back to JPY.
+- Put JPY, USD, EUR first, followed by CNY, GBP, AUD, CAD, CHF, HKD, SGD, TWD, THB, NZD, VND. Unsupported saved currencies fall back to JPY. Always fetch both KRW and USD rates so every source currency uses USD-based exemption thresholds.
 - Keep the main flow to price/currency, a separate US-shipment checkbox, and two mutually exclusive goods radios: general list-eligible goods (default), and list-excluded goods such as food/supplements. Put optional shipping and item duty-rate inputs in collapsed additional settings.
 - For qualifying personal imports, the inclusive exemption threshold is USD 200 only for US-shipped list-eligible goods; all other combinations use USD 150. List exclusion does not remove the USD 150 exemption. Goods class determines the threshold, not a universal tariff rate; retain a visible editable duty assumption.
 - Support switchable themes: `gyaru` is the default (pink, dark zebra chrome, gold/sparkle accents); `classic` preserves the original design. Keep Korean text and the compact layout in both. Put the selector in additional settings and persist the choice. Missing or unknown saved themes default to gyaru.
@@ -25,6 +25,7 @@ Build a small native Windows 11 WPF widget for foreign-price conversion to KRW a
 - Duty depends on classification, origin, shipping, exemptions, and customs exchange rates. Keep assumptions visible and editable, include VAT, and label the result as an estimate. Verify rule changes against official Korea Customs Service sources and document sources in README.md.
 - Avoid unnecessary packages and keep the widget compact. Preserve native control keyboard behavior and add accessible names to icon buttons.
 - Define theme palettes in `Themes/` resource dictionaries and use `DynamicResource` for colors and decorations so changes apply immediately without restarting or resetting inputs.
+- Keep shortcuts scoped to the focused widget window. Define gestures and Korean help in `Shortcuts/WidgetShortcuts.cs`, preserve normal text editing, and block repeated refresh while a request is running. F1 opens the keyboard-accessible help overlay; Esc closes it and restores focus.
 
 ## Verification and Git
 - Test meaningful calculation boundaries, malformed input, cache validation, and failed network requests with deterministic data. Tests must not require the live rate API.
