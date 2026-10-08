@@ -6,6 +6,7 @@ Build a small native Windows 11 WPF widget for foreign-price conversion to KRW a
 - Support only JPY, USD, EUR in that order. Unsupported saved currencies fall back to JPY.
 - Keep the main flow to price/currency, a separate US-shipment checkbox, and two mutually exclusive goods radios: general list-eligible goods (default), and list-excluded goods such as food/supplements. Put optional shipping and item duty-rate inputs in collapsed additional settings.
 - For qualifying personal imports, the inclusive exemption threshold is USD 200 only for US-shipped list-eligible goods; all other combinations use USD 150. List exclusion does not remove the USD 150 exemption. Goods class determines the threshold, not a universal tariff rate; retain a visible editable duty assumption.
+- Support switchable themes: `gyaru` is the default (pink, dark zebra chrome, gold/sparkle accents); `classic` preserves the original design. Keep Korean text and the compact layout in both. Put the selector in additional settings and persist the choice. Missing or unknown saved themes default to gyaru.
 
 ## Environment and commands
 - This repository lives on a Windows drive and is edited from WSL 2.
@@ -23,6 +24,7 @@ Build a small native Windows 11 WPF widget for foreign-price conversion to KRW a
 - Store preferences and cached rates beneath `%LOCALAPPDATA%/HowMuch`, outside the repo. Tolerate missing, malformed, and inaccessible files.
 - Duty depends on classification, origin, shipping, exemptions, and customs exchange rates. Keep assumptions visible and editable, include VAT, and label the result as an estimate. Verify rule changes against official Korea Customs Service sources and document sources in README.md.
 - Avoid unnecessary packages and keep the widget compact. Preserve native control keyboard behavior and add accessible names to icon buttons.
+- Define theme palettes in `Themes/` resource dictionaries and use `DynamicResource` for colors and decorations so changes apply immediately without restarting or resetting inputs.
 
 ## Verification and Git
 - Test meaningful calculation boundaries, malformed input, cache validation, and failed network requests with deterministic data. Tests must not require the live rate API.
