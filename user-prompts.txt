@@ -1,0 +1,59 @@
+﻿사용자 프롬프트 모음
+범위: 현재 Codex 대화에서 사용자가 입력한 프롬프트 전체 (총 11개)
+각 프롬프트의 본문은 원문 그대로이며, 번호와 구분선만 추가했습니다.
+자동으로 제공된 환경 정보와 ChatGPT 웹 인터페이스의 다른 대화는 포함하지 않습니다.
+
+======================================================================
+프롬프트 1
+======================================================================
+The current directory is for a C# WPF project. Here we want to develop a small always-on-top desktop widget for Windows 11. On the widget, there should be a filed where the user can enter a number (price), and next to it, there should be a dropdown box where the user can select currency (The default should be JPY, and it should remember the last selected currency). Once the user enters the price in the selected currency, the app should immediately display the amount converted to KRW, using the up-to-date currency rate (should be obtained via the Internet). And the app should also display the customs duty that the user should pay to buy the thing with that price through a foreign online shopping mall. Also the total amount of money (the price in KRW plus the customs duty) should be displayed. The widget should be movable using mouse drag-and-drop, but should not be resizable. The user should be able to close the widget if they don't want to see it for a while. We are developping it in WSL 2 environment (dotnet.exe is already installed and ready to use), but it should be executed in Windows 11 native environment. Now, generate a proper AGENTS.md and develop this app. Make small Git commits so that we can track the history.
+
+======================================================================
+프롬프트 2
+======================================================================
+Codex, what are you doing now?
+
+======================================================================
+프롬프트 3
+======================================================================
+All the UX should be in Korean language. The supported source currentcies should be JPY (first priority), USD (second priority), EUR (third priority). The widget should have a checkbox "Shipped from USA" and a radio button with which user can select between "일반 물품(목록 통관 대상)" which is the default and "식품, 건강기능식품 등 목록통관 제외 물품". The app should have a proper logic to calculate the customs duty and the VAT based on the informaton given from the user. But the UX should be as simple as possible.
+
+======================================================================
+프롬프트 4
+======================================================================
+From the Git commit messages, remove "feat: ", "docs: ", "fix: ", etc. And don't use such headers again in this project.
+
+======================================================================
+프롬프트 5
+======================================================================
+Some of the Git commit messages start with uppercase. Change them to lowercase.
+
+======================================================================
+프롬프트 6
+======================================================================
+Support multiple UX themes. Keep the current UX theme as one, but add a new UX theme to something that Japanese "Gals" (Gyaroo) will like and set it as the default.
+
+======================================================================
+프롬프트 7
+======================================================================
+Codex, what are you doing now?
+
+======================================================================
+프롬프트 8
+======================================================================
+Support hotkeys (shortcut keys)
+
+======================================================================
+프롬프트 9
+======================================================================
+JPY, USD, EUR 말고 다른 대표적인 환율들도 지원하라.
+
+======================================================================
+프롬프트 10
+======================================================================
+Codex, 너는 내가 ChatGPT 웹 인터페이스에서 chat mode를 사용할 때 했던 대화들을 액세스할 수 있는가?
+
+======================================================================
+프롬프트 11
+======================================================================
+내가 입력한 프롬프트를 모두 하나의 파일에 저장하라. 이메일로 보낼 것이다.
