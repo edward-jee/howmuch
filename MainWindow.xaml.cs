@@ -203,7 +203,7 @@ public partial class MainWindow : Window
             ClearResults("입력한 금액을 확인하세요");
             return;
         }
-        AdvancedSettings.Header = $"추가 설정 · 배송비 / 관세율 {duty:0.####}%";
+        AdvancedSettings.Header = $"추가 설정: 배송비 {shipping:0.####} / 관세율 {duty:0.####}%";
         if (rates is null) { ClearResults("환율을 확인한 뒤 계산합니다"); return; }
         var estimate = ImportCalculator.Calculate(price, shipping, rates.Krw, rates.Usd, duty,
             UsInput.IsChecked == true, SelectedGoodsType);

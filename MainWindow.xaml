@@ -94,7 +94,7 @@
                     <TextBlock Text="식품, 건강기능식품 등 목록통관 제외 물품" TextWrapping="Wrap"/>
                 </RadioButton>
                 <TextBlock x:Name="ThresholdText" FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,0"/>
-                <Expander x:Name="AdvancedSettings" Header="추가 설정 · 배송비 / 관세율" FontSize="12" Margin="0,10,0,0"
+                <Expander x:Name="AdvancedSettings" Header="추가 설정: 배송비 0 / 관세율 8%" FontSize="12" Margin="0,10,0,0"
                           ToolTip="추가 설정 펼치기·접기 (Ctrl+,)">
                     <StackPanel>
                 <Grid Margin="0,10,0,0">
