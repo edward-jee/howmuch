@@ -24,7 +24,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <TextBlock Text="관세율을 함께 찾아볼까요?" FontSize="19" FontWeight="SemiBold"/>
-                <TextBlock Text="세 가지 질문에 답하면 참고할 관세율을 제안합니다." Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,16" TextWrapping="Wrap"/>
+                <TextBlock Text="세 가지 질문에 답하면 참고할 관세율을 제안합니다. 트레이딩 카드는 관세 0%와 면세 기준을 구분해 계산해요." Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,16" TextWrapping="Wrap"/>
                 <TextBlock Text="1. 어떤 종류의 물품인가요?" FontWeight="SemiBold" Margin="0,0,0,6"/>
                 <ComboBox x:Name="CategoryInput" DisplayMemberPath="Label" SelectedValuePath="Id"
                           SelectionChanged="Category_Changed" AutomationProperties.Name="물품 종류"/>

@@ -15,10 +15,12 @@ public static class DutyAdvisor
     private const string TextileSource = "https://www.customs.go.kr/download/ftaportalkor/_down/trty/han_sg_05.pdf";
     private const string ShoeSource = "https://www.customs.go.kr/download/ftaportalkor/_down/trty/han_eu_1_05.pdf";
     private const string WarmerSource = "https://unipass.customs.go.kr/clip/hsinfosrch/openULS0201007Q.do?opnMod=P&searchVal=8516799000";
+    private const string TradingCardSource = "https://www.customs.go.kr/download/ftaportalkor/_down/trty/kor_is_04.pdf";
 
     public static IReadOnlyList<DutyCategory> Categories { get; } =
     [new("clothes", "의류"), new("shoes", "신발"), new("electronics", "전자·생활용품"),
-     new("food", "식품·건강기능식품"), new("other", "기타 / 잘 모르겠어요")];
+     new("food", "식품·건강기능식품"), new("trading-cards", "트레이딩 카드"),
+     new("other", "기타 / 잘 모르겠어요")];
 
     // Representative classification examples, not an exhaustive tariff table or live tariff lookup.
     // Treaty schedules provide historical base-rate examples; confirm current assessment in CLIP.
@@ -44,6 +46,8 @@ public static class DutyAdvisor
             "성분·제형에 따라 세율과 반입 요건이 달라집니다. 목록통관 제외 물품이며 미국 발송이어도 면세 기준은 150달러입니다.", CalculatorUrl),
         new("food-other", "food", "일반 식품 / 농축수산물", null, GoodsType.ListExcluded,
             "식품 전체에 같은 관세율을 적용할 수 없습니다. 원재료·가공 방식과 추가 세금을 관세청에서 확인하세요.", CalculatorUrl),
+        new("pokemon-trading-card", "trading-cards", "포켓몬 등 오락용 트레이딩 카드", 0, GoodsType.ListEligible,
+            "오락용 카드는 HSK 9504.40-0000 분류 사례가 있으며, 관세청 양허표의 기본세율은 0%입니다. 소액면세 기준을 넘으면 관세는 0%여도 부가세 10%가 계산됩니다. 카드가 아닌 수집용 인쇄물 등은 품목분류를 확인하세요.", TradingCardSource),
         new("other", "other", "품목을 직접 확인할게요", null, null,
             "정확한 품목을 확인할 수 없어 관세율을 제안하지 않습니다. 관세청에서 확인한 세율을 입력할 수 있습니다.", CalculatorUrl)
     ];
