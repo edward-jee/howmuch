@@ -72,13 +72,15 @@
             </Grid>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="18,14">
-                <TextBlock Text="상품 가격" Foreground="{DynamicResource MutedBrush}" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,6"/>
                 <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
-                    <TextBox x:Name="PriceInput" Text="0" FontSize="21" Margin="0,0,8,0" MaxLength="24"
+                    <TextBlock Text="상품 가격" Foreground="{DynamicResource MutedBrush}" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <TextBlock Grid.Column="1" Text="단위" Foreground="{DynamicResource MutedBrush}" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <TextBox x:Name="PriceInput" Grid.Row="1" Text="0" FontSize="21" Margin="0,0,8,0" MaxLength="24"
                              TextChanged="Input_Changed" AutomationProperties.Name="선택한 통화의 상품 가격"
                              ToolTip="가격 입력: Ctrl+L · 현지 세금과 현지 배송비 포함 · 소수점은 마침표(.) 사용"/>
-                    <ComboBox x:Name="CurrencyInput" Grid.Column="1" SelectionChanged="Currency_Changed"
+                    <ComboBox x:Name="CurrencyInput" Grid.Row="1" Grid.Column="1" SelectionChanged="Currency_Changed"
                               AutomationProperties.Name="통화" ToolTip="Ctrl+1: JPY · Ctrl+2: USD · Ctrl+3: EUR"/>
                 </Grid>
                 <CheckBox x:Name="UsInput" Content="미국에서 발송" Margin="0,14,0,0"
