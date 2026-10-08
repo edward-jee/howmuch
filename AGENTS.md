@@ -8,6 +8,7 @@ Build a small native Windows 11 WPF widget for foreign-price conversion to KRW a
 - Target .NET 8 Windows and WPF. Use `dotnet.exe`, not Linux `dotnet`, for Windows builds and execution.
 - Build: `dotnet.exe build howmuch.csproj -c Release`.
 - Run calculation and service checks: `dotnet.exe run --project tests/HowMuch.Checks.csproj -c Release`.
+- Run the native WPF smoke checks (briefly opens a Windows widget): `dotnet.exe run --project tests/WidgetChecks/WidgetChecks.csproj -c Release`.
 - Publish: `dotnet.exe publish howmuch.csproj -c Release -r win-x64 --self-contained true -o artifacts/win-x64`.
 - WPF must run in Windows. Do not claim visual or interactive validation from compilation alone. Record Windows manual checks in README.md.
 
