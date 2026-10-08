@@ -3,6 +3,8 @@
 각 프롬프트의 본문은 원문 그대로이며, 번호와 구분선만 추가했습니다.
 자동으로 제공된 환경 정보와 ChatGPT 웹 인터페이스의 다른 대화는 포함하지 않습니다.
 
+(여기서부터 GPT-6.1-Sol, Medium 사용하였음.)
+
 ======================================================================
 프롬프트 1
 ======================================================================
@@ -72,6 +74,8 @@ Update the file us
 프롬프트 14
 ======================================================================
 Update the file user-prompts.txt with the prompts I've entered since the last update of that file. Make a Git commit for this update (Refer to a previous commit that creates this file).
+
+(여기서부터 GPT-6-Luna, Medium 사용하였음.)
 
 ======================================================================
 프롬프트 15
