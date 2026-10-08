@@ -109,6 +109,19 @@ public partial class MainWindow : Window
     private void Help_Click(object sender, RoutedEventArgs e) => SetHelpVisible(true);
     private void HelpClose_Click(object sender, RoutedEventArgs e) => SetHelpVisible(false);
 
+    private void DutyAssist_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new DutyAdvisorWindow(SelectedTheme) { Owner = this };
+        if (dialog.ShowDialog() == true && dialog.AppliedAdvice is { Rate: decimal rate } advice)
+        {
+            if (advice.GoodsType == GoodsType.ListEligible) GeneralGoodsInput.IsChecked = true;
+            else if (advice.GoodsType == GoodsType.ListExcluded) ExcludedGoodsInput.IsChecked = true;
+            DutyInput.Text = rate.ToString("0.####", CultureInfo.InvariantCulture);
+        }
+        DutyInput.Focus();
+        DutyInput.SelectAll();
+    }
+
     private void Theme_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (!ready) return;

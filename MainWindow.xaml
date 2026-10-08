@@ -104,8 +104,14 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="관세율 (%)" FontSize="11" Margin="0,0,0,4"/>
-                        <TextBox x:Name="DutyInput" Text="8" MaxLength="8" TextChanged="Input_Changed"
-                                 AutomationProperties.Name="예상 관세율"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="30"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="DutyInput" Text="8" MaxLength="8" TextChanged="Input_Changed"
+                                     AutomationProperties.Name="예상 관세율"/>
+                            <Button x:Name="DutyAssistButton" Grid.Column="1" Content="?" Margin="4,0,0,0" Padding="0"
+                                    Click="DutyAssist_Click" ToolTip="질문에 답해 관세율 찾기"
+                                    AutomationProperties.Name="관세율 찾기 도움말"/>
+                        </Grid>
                     </StackPanel>
                 </Grid>
                         <TextBlock FontSize="10" Foreground="{DynamicResource SubtleBrush}" TextWrapping="Wrap" Margin="0,5,0,0"

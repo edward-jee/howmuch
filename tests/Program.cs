@@ -33,6 +33,24 @@ Check(ImportCalculator.Calculate(25000, 0, 9.5m, .006m, 8, false, GoodsType.List
 Check(!ImportCalculator.Calculate(151, 0, 1500, 1.1m, 8, false, GoodsType.ListEligible).IsExempt, "EUR threshold uses USD conversion");
 Check(ExchangeRateService.Currencies.Take(3).SequenceEqual(new[] { "JPY", "USD", "EUR" }), "Supported currency priority");
 Check(ExchangeRateService.Currencies.Skip(3).SequenceEqual(new[] { "CNY", "GBP", "AUD", "CAD", "CHF", "HKD", "SGD", "TWD", "THB", "NZD", "VND" }), "Representative additional currencies");
+foreach (var (category, profile, rate) in new[]
+    { ("clothes", "cotton-shirt", 13m), ("clothes", "knit", 13m), ("shoes", "sports-shoe", 13m),
+      ("shoes", "rubber-boot", 8m), ("electronics", "warmer", 8m) })
+    Check(DutyAdvisor.Estimate(category, profile, DutyTreatment.Representative, "").Rate == rate,
+        $"Representative profile {profile}");
+foreach (var profile in DutyAdvisor.Profiles.Where(profile => profile.Rate is null))
+    Check(!DutyAdvisor.Estimate(profile.Category, profile.Id, DutyTreatment.Representative, "").CanApply,
+        $"No guessed rate for {profile.Id}");
+Check(!DutyAdvisor.Estimate(null, null, DutyTreatment.Representative, "").CanApply, "No rate before answers");
+Check(!DutyAdvisor.Estimate("shoes", "cotton-shirt", DutyTreatment.Representative, "").CanApply, "Reject stale profile after category switch");
+Check(!DutyAdvisor.Estimate("clothes", "cotton-shirt", (DutyTreatment)(-1), "").CanApply, "Require tariff treatment answer");
+Check(DutyAdvisor.Estimate("clothes", "cotton-shirt", DutyTreatment.ConfirmedRate, "5.2").Rate == 5.2m, "Explicit confirmed fractional rate");
+var supplement = DutyAdvisor.Estimate("food", "supplement", DutyTreatment.ConfirmedRate, "0");
+Check(supplement.Rate == 0 && supplement.GoodsType == GoodsType.ListExcluded, "Confirmed zero rate does not make supplements list-eligible");
+foreach (var invalid in new[] { "", "-1", "101", "unknown" })
+    Check(!DutyAdvisor.Estimate("clothes", "cotton-shirt", DutyTreatment.ConfirmedRate, invalid).CanApply, "Validate confirmed tariff input");
+Check(!DutyAdvisor.Estimate("clothes", "cotton-shirt", DutyTreatment.SpecialTaxes, "0").CanApply, "Special taxes must not be replaced by simple duty advice");
+Check(DutyAdvisor.Estimate("clothes", "cotton-shirt", DutyTreatment.Representative, "0").Rate == 13, "Unconfirmed FTA does not imply zero tariff");
 Check(ImportCalculator.TryAmount("12,345.67", out var amount) && amount == 12345.67m, "Grouped decimal parsing");
 foreach (var invalid in new[] { "", "-1", "NaN", "1,2", "1e6", "1.23456", "1000000001", "1 234", "." })
     Check(!ImportCalculator.TryAmount(invalid, out _), $"Reject {invalid}");

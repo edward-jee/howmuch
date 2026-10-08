@@ -66,6 +66,52 @@ internal static class Program
                 ((TextBox)window.FindName("ShippingInput")).Text = "10";
                 ((TextBox)window.FindName("DutyInput")).Text = "13";
                 Require(((TextBlock)window.FindName("TotalResult")).Text == "₩321,937", "Optional shipping/duty update full taxable total");
+                window.UpdateLayout();
+                Require(((FrameworkElement)window.FindName("ThemeInput")).TransformToAncestor(advanced).Transform(new Point()).Y >
+                    ((FrameworkElement)window.FindName("DutyInput")).TransformToAncestor(advanced).Transform(new Point()).Y,
+                    "Theme selection is below shipping/duty settings");
+                TestDutyDialog(window, dialog =>
+                {
+                    var category = (ComboBox)dialog.FindName("CategoryInput");
+                    var profile = (ComboBox)dialog.FindName("ProfileInput");
+                    var apply = (Button)dialog.FindName("ApplyButton");
+                    Require(!apply.IsEnabled, "No advisor rate before answers");
+                    category.SelectedValue = "clothes";
+                    profile.SelectedValue = "cotton-shirt";
+                    Require(apply.IsEnabled && ((TextBlock)dialog.FindName("RateResult")).Text.Contains("13%"), "Popup estimates selected clothing tariff");
+                    dialog.UpdateLayout();
+                    CapturePreview(dialog, "duty-advisor");
+                    apply.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                });
+                Require(((TextBox)window.FindName("DutyInput")).Text == "13" &&
+                    ((RadioButton)window.FindName("GeneralGoodsInput")).IsChecked == true, "Apply transfers rate and classification");
+                Require(((TextBlock)window.FindName("DutyResult")).Text == "₩0", "Applied general goods uses US $200 exemption");
+                TestDutyDialog(window, dialog =>
+                {
+                    ((ComboBox)dialog.FindName("CategoryInput")).SelectedValue = "food";
+                    ((ComboBox)dialog.FindName("ProfileInput")).SelectedValue = "supplement";
+                    Require(!((Button)dialog.FindName("ApplyButton")).IsEnabled, "Supplement tariff is not guessed");
+                    ((ComboBox)dialog.FindName("TreatmentInput")).SelectedIndex = 1;
+                    ((TextBox)dialog.FindName("ConfirmedRateInput")).Text = "8";
+                    ((Button)dialog.FindName("ApplyButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                });
+                Require(((TextBox)window.FindName("DutyInput")).Text == "8" &&
+                    ((RadioButton)window.FindName("ExcludedGoodsInput")).IsChecked == true, "Food advice transfers confirmed rate and excluded classification");
+                Require(((TextBlock)window.FindName("ThresholdText")).Text.Contains("150"), "Applied food classification uses $150 threshold");
+                TestDutyDialog(window, dialog =>
+                {
+                    ((ComboBox)dialog.FindName("CategoryInput")).SelectedValue = "clothes";
+                    ((ComboBox)dialog.FindName("ProfileInput")).SelectedValue = "cotton-shirt";
+                    ((ComboBox)dialog.FindName("CategoryInput")).SelectedValue = "shoes";
+                    Require(!((Button)dialog.FindName("ApplyButton")).IsEnabled, "Category changes reset the old profile");
+                    ((ComboBox)dialog.FindName("ProfileInput")).SelectedValue = "sports-shoe";
+                    ((ComboBox)dialog.FindName("TreatmentInput")).SelectedIndex = 2;
+                    Require(!((Button)dialog.FindName("ApplyButton")).IsEnabled, "Special taxes block application");
+                    dialog.DialogResult = false;
+                });
+                Require(((TextBox)window.FindName("DutyInput")).Text == "8" &&
+                    ((RadioButton)window.FindName("ExcludedGoodsInput")).IsChecked == true, "Cancel keeps existing inputs");
+                ((TextBox)window.FindName("DutyInput")).Text = "13";
                 advanced.IsExpanded = false;
                 theme.SelectedValue = "classic";
                 window.UpdateLayout();
@@ -146,7 +192,7 @@ internal static class Program
                 }
                 RunShortcut(window, Key.W, ModifierKeys.Control);
                 Require(!window.IsVisible, "Shortcut closes widget");
-                Console.WriteLine("Passed native Korean WPF layout, customs options, themes, shortcuts, persistence, and request-race checks.");
+                Console.WriteLine("Passed native Korean WPF layout, duty-advisor dialogs, customs options, themes, shortcuts, persistence, and request-race checks.");
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); exitCode = 1; }
             finally { if (window.IsVisible) window.Close(); }
@@ -164,6 +210,19 @@ internal static class Program
     private static RoutedCommand FindShortcut(Window window, Key key, ModifierKeys modifiers) =>
         (RoutedCommand)window.InputBindings.OfType<KeyBinding>()
             .Single(binding => binding.Key == key && binding.Modifiers == modifiers).Command;
+
+    private static void TestDutyDialog(Window owner, Action<DutyAdvisorWindow> check)
+    {
+        Exception? failure = null;
+        owner.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
+        {
+            var dialog = owner.OwnedWindows.OfType<DutyAdvisorWindow>().Single();
+            try { check(dialog); }
+            catch (Exception ex) { failure = ex; dialog.DialogResult = false; }
+        }));
+        ((Button)owner.FindName("DutyAssistButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        if (failure is not null) throw failure;
+    }
 
     private static void RunShortcut(Window window, Key key, ModifierKeys modifiers)
     {
