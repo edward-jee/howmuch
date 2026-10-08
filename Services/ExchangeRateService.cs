@@ -33,14 +33,15 @@ public sealed class ExchangeRateService(HttpClient client, LocalStore store)
         if (!Currencies.Contains(currency)) throw new ArgumentException("Unsupported currency.", nameof(currency));
         try
         {
-            var rows = await client.GetFromJsonAsync<List<RateRow>>(
+            var rows = await client.GetFromJsonAsync<List<RateRow?>>(
                 $"https://api.frankfurter.dev/v2/rates?base={currency}&quotes=KRW,USD", cancellationToken)
                 ?? throw new JsonException("Missing rates.");
+            if (rows.Any(row => row is null)) throw new JsonException("Null rate row.");
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var krw = currency == "KRW" ? new RateRow(today, currency, "KRW", 1) :
-                rows.Single(r => r.Base == currency && r.Quote == "KRW");
+                rows.Single(r => r!.Base == currency && r.Quote == "KRW")!;
             var usd = currency == "USD" ? new RateRow(today, currency, "USD", 1) :
-                rows.Single(r => r.Base == currency && r.Quote == "USD");
+                rows.Single(r => r!.Base == currency && r.Quote == "USD")!;
             var rates = new ExchangeRates(currency, krw.Rate, usd.Rate, krw.Date, usd.Date, DateTimeOffset.UtcNow);
             if (!rates.IsValid(currency)) throw new JsonException("Invalid rates.");
             store.Write($"rates-{currency}.json", rates);

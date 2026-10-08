@@ -79,24 +79,33 @@
                 <Border Background="White" CornerRadius="8" Padding="14" BorderBrush="#E0E6EF" BorderThickness="1">
                     <StackPanel>
                         <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <TextBlock Text="Price in KRW" Foreground="#536581"/>
-                            <TextBlock x:Name="PriceResult" Text="—" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="PriceResult" Grid.Column="1" Text="—" TextAlignment="Right" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Grid>
                         <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <TextBlock Text="Shipping in KRW" Foreground="#536581"/>
-                            <TextBlock x:Name="ShippingResult" Text="—" HorizontalAlignment="Right"/>
+                            <TextBlock x:Name="ShippingResult" Grid.Column="1" Text="—" TextAlignment="Right"
+                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Grid>
                         <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <TextBlock Text="Estimated duty" Foreground="#536581"/>
-                            <TextBlock x:Name="DutyResult" Text="—" HorizontalAlignment="Right"/>
+                            <TextBlock x:Name="DutyResult" Grid.Column="1" Text="—" TextAlignment="Right"
+                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Grid>
                         <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <TextBlock Text="Estimated VAT (10%)" Foreground="#536581"/>
-                            <TextBlock x:Name="VatResult" Text="—" HorizontalAlignment="Right"/>
+                            <TextBlock x:Name="VatResult" Grid.Column="1" Text="—" TextAlignment="Right"
+                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Grid>
                         <Border Height="1" Background="#E0E6EF" Margin="0,12,0,10"/>
                         <TextBlock Text="ESTIMATED TOTAL" FontSize="10" Foreground="#536581" FontWeight="SemiBold"/>
                         <TextBlock x:Name="TotalResult" Text="—" FontSize="29" FontWeight="SemiBold" Foreground="#2459C4"
+                                   TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                                    AutomationProperties.LiveSetting="Polite"/>
                         <TextBlock x:Name="ExemptionText" FontSize="11" Foreground="#536581" Text="Waiting for exchange rates"/>
                     </StackPanel>

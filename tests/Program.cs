@@ -47,6 +47,8 @@ try
     catch (HttpRequestException) { checks++; }
     using var malformedClient = new HttpClient(new FakeHandler("[]"));
     Check((await new ExchangeRateService(malformedClient, store).GetAsync("JPY", default)).IsCached, "Incomplete API data falls back to cache");
+    using var nullRowClient = new HttpClient(new FakeHandler("[null]"));
+    Check((await new ExchangeRateService(nullRowClient, store).GetAsync("JPY", default)).IsCached, "Null API row falls back to cache");
     store.Write("rates-JPY.json", live.Rates with { Currency = "EUR" });
     Check(offline.ReadCached("JPY") is null, "Reject wrong currency cache");
     store.Write("rates-JPY.json", live.Rates with { Krw = -1 });
