@@ -28,4 +28,4 @@ Build a small native Windows 11 WPF widget for foreign-price conversion to KRW a
 - Test meaningful calculation boundaries, malformed input, cache validation, and failed network requests with deterministic data. Tests must not require the live rate API.
 - Build after implementation changes. Use the Windows SDK from WSL; request execution approval when the sandbox prevents Windows interop.
 - Make small, focused Git commits as requested. Inspect diffs before committing; do not include generated output, secrets, or unrelated user changes.
-- Use plain descriptive commit messages without type prefixes such as `feat:`, `docs:`, `fix:`, or other Conventional Commit headers.
+- Start commit messages with a lowercase letter. Use plain descriptive messages without type prefixes such as `feat:`, `docs:`, `fix:`, or other Conventional Commit headers.
