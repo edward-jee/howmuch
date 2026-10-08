@@ -31,4 +31,5 @@ public sealed class LocalStore
     }
 }
 
-public sealed record Preferences(string Currency = "JPY", double? Left = null, double? Top = null);
+public sealed record Preferences(string Currency = "JPY", double? Left = null, double? Top = null,
+    string Theme = "gyaru");

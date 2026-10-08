@@ -1,0 +1,21 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="PageBrush" Color="#F5F7FB"/>
+    <SolidColorBrush x:Key="InkBrush" Color="#17243C"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="#536581"/>
+    <SolidColorBrush x:Key="SubtleBrush" Color="#687992"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="#CBD5E1"/>
+    <SolidColorBrush x:Key="HeaderBrush" Color="#17243C"/>
+    <SolidColorBrush x:Key="HeaderInkBrush" Color="White"/>
+    <SolidColorBrush x:Key="HeaderMutedBrush" Color="#A8B9D4"/>
+    <SolidColorBrush x:Key="CardBrush" Color="White"/>
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#E0E6EF"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#2459C4"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="#B42318"/>
+    <SolidColorBrush x:Key="InputBrush" Color="White"/>
+    <SolidColorBrush x:Key="ButtonBrush" Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="#E0E6EF"/>
+    <SolidColorBrush x:Key="DecorationBrush" Color="#2459C4"/>
+    <CornerRadius x:Key="CardRadius">8</CornerRadius>
+    <Visibility x:Key="DecorationVisibility">Collapsed</Visibility>
+</ResourceDictionary>

@@ -9,6 +9,7 @@ using System.Windows.Navigation;
 using System.Windows.Threading;
 using howmuch.Core;
 using howmuch.Services;
+using howmuch.Themes;
 
 namespace howmuch;
 
@@ -34,6 +35,9 @@ public partial class MainWindow : Window
         var preferences = store.Read<Preferences>("settings.json") ?? new();
         CurrencyInput.ItemsSource = ExchangeRateService.Currencies;
         CurrencyInput.SelectedItem = ExchangeRateService.Currencies.Contains(preferences.Currency) ? preferences.Currency : "JPY";
+        ThemeInput.ItemsSource = ThemeManager.Choices;
+        ThemeInput.SelectedValue = ThemeManager.Normalize(preferences.Theme);
+        ThemeManager.Apply(Resources, SelectedTheme);
         if (preferences.Left is double left && preferences.Top is double top &&
             double.IsFinite(left) && double.IsFinite(top) &&
             left >= SystemParameters.VirtualScreenLeft && top >= SystemParameters.VirtualScreenTop &&
@@ -51,6 +55,14 @@ public partial class MainWindow : Window
     private GoodsType SelectedGoodsType => ExcludedGoodsInput.IsChecked == true ? GoodsType.ListExcluded : GoodsType.ListEligible;
 
     private string Currency => CurrencyInput.SelectedItem as string ?? "JPY";
+    private string SelectedTheme => ThemeInput.SelectedValue as string ?? ThemeManager.DefaultTheme;
+
+    private void Theme_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (!ready) return;
+        ThemeManager.Apply(Resources, SelectedTheme);
+        SavePreferences();
+    }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
@@ -149,7 +161,7 @@ public partial class MainWindow : Window
 
     private void SavePreferences()
     {
-        PersistenceStatus.Text = store.Write("settings.json", new Preferences(Currency, Left, Top))
+        PersistenceStatus.Text = store.Write("settings.json", new Preferences(Currency, Left, Top, SelectedTheme))
             ? "" : "설정을 저장하지 못했습니다.";
     }
 

@@ -3,9 +3,11 @@ using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using howmuch;
 using howmuch.Services;
+using howmuch.Themes;
 
 internal static class Program
 {
@@ -14,7 +16,8 @@ internal static class Program
     {
         string directory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "HowMuch-widget-" + Guid.NewGuid());
         var store = new LocalStore(directory);
-        store.Write("settings.json", new Preferences("CNY"));
+        System.IO.Directory.CreateDirectory(directory);
+        System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "settings.json"), "{\"Currency\":\"CNY\"}");
         var window = new MainWindow(store, new HttpClient(new DelayedRates()));
         int exitCode = 0;
         window.Loaded += async (_, _) =>
@@ -30,6 +33,9 @@ internal static class Program
                 Require(((Expander)window.FindName("AdvancedSettings")).IsExpanded == false, "Optional settings initially hidden");
                 Require(window.Title == "얼마일까 · 해외직구 계산기", "Korean window title");
                 Require(window.Topmost && window.ResizeMode == ResizeMode.NoResize, "Topmost and fixed size");
+                var theme = (ComboBox)window.FindName("ThemeInput");
+                Require((string)theme.SelectedValue == "gyaru" && window.Background is LinearGradientBrush, "Gyaru is default including legacy settings");
+                Require(ThemeManager.Normalize("unknown") == "gyaru", "Unknown theme falls back to default");
                 var price = (TextBox)window.FindName("PriceInput");
                 price.Text = "10000";
                 Require(((TextBlock)window.FindName("PriceResult")).Text == "₩95,000", "Immediate KRW conversion");
@@ -58,6 +64,21 @@ internal static class Program
                 ((TextBox)window.FindName("DutyInput")).Text = "13";
                 Require(((TextBlock)window.FindName("TotalResult")).Text == "₩321,937", "Optional shipping/duty update full taxable total");
                 advanced.IsExpanded = false;
+                theme.SelectedValue = "classic";
+                window.UpdateLayout();
+                CapturePreview(window, "classic");
+                Require(window.Background is SolidColorBrush classic && classic.Color == Color.FromRgb(245, 247, 251), "Classic preserves original palette");
+                Require((Visibility)window.FindResource("DecorationVisibility") == Visibility.Collapsed, "Classic hides gyaru decorations");
+                Require(store.Read<Preferences>("settings.json")?.Theme == "classic", "Selected theme saved immediately");
+                var restored = new MainWindow(store, new HttpClient(new DelayedRates()));
+                Require((string)((ComboBox)restored.FindName("ThemeInput")).SelectedValue == "classic", "Theme restored on next launch");
+                restored.Close();
+                Require(((TextBlock)window.FindName("TotalResult")).Text == "₩321,937", "Theme change preserves calculated amounts");
+                theme.SelectedValue = "gyaru";
+                window.UpdateLayout();
+                CapturePreview(window, "gyaru");
+                Require(window.Background is LinearGradientBrush && store.Read<Preferences>("settings.json")?.Theme == "gyaru", "Switch back to gyaru and persist");
+                advanced.IsExpanded = false;
                 window.UpdateLayout();
                 foreach (var element in Descendants(window).OfType<FrameworkElement>()
                     .Where(e => e.IsVisible && e.ActualHeight > 0 && e is TextBlock or TextBox or ComboBox or Button or CheckBox or RadioButton))
@@ -66,7 +87,7 @@ internal static class Program
                     Require(location.Y + element.ActualHeight <= window.ActualHeight + 1, $"Layout fits: {element.GetType().Name} {element.Name} ends at {location.Y + element.ActualHeight:0.0}");
                     Require(location.X >= -1 && location.X + element.ActualWidth <= window.ActualWidth + 1, $"Horizontal layout fits: {element.GetType().Name} {element.Name}");
                 }
-                Console.WriteLine("Passed native Korean WPF layout, currency priority, customs options, optional settings, persistence, and request-race checks.");
+                Console.WriteLine("Passed native Korean WPF layout, currency priority, customs options, themes, persistence, and request-race checks.");
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); exitCode = 1; }
             finally { window.Close(); }
@@ -79,6 +100,19 @@ internal static class Program
     private static void Require(bool condition, string message)
     {
         if (!condition) throw new Exception(message);
+    }
+
+    private static void CapturePreview(Window window, string name)
+    {
+        if (!Environment.GetCommandLineArgs().Contains("--capture-themes")) return;
+        string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "artifacts", "theme-previews");
+        System.IO.Directory.CreateDirectory(directory);
+        var bitmap = new RenderTargetBitmap((int)window.ActualWidth, (int)window.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(window);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var output = System.IO.File.Create(System.IO.Path.Combine(directory, name + ".png"));
+        encoder.Save(output);
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

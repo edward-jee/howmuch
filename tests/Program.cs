@@ -43,6 +43,10 @@ try
     var store = new LocalStore(directory);
     Check(store.Read<Preferences>("settings.json") is null, "Missing settings");
     Check(store.Write("settings.json", new Preferences("EUR")) && store.Read<Preferences>("settings.json")?.Currency == "EUR", "Settings roundtrip");
+    Check(store.Write("settings.json", new Preferences("EUR", Theme: "classic")) &&
+        store.Read<Preferences>("settings.json")?.Theme == "classic", "Theme preference roundtrip");
+    File.WriteAllText(Path.Combine(directory, "settings.json"), "{\"Currency\":\"USD\"}");
+    Check(store.Read<Preferences>("settings.json")?.Theme == "gyaru", "Legacy preferences default to gyaru");
     File.WriteAllText(Path.Combine(directory, "settings.json"), "bad json");
     Check(store.Read<Preferences>("settings.json") is null, "Malformed settings tolerated");
     string date = DateTime.UtcNow.ToString("yyyy-MM-dd");
