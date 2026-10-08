@@ -2,6 +2,10 @@
 
 ## Product
 Build a small native Windows 11 WPF widget for foreign-price conversion to KRW and estimated Korean personal-import charges. Keep it always on top, fixed size, draggable, keyboard accessible, and easy to dismiss. Default currency is JPY; persist the last selection locally.
+- All user-facing labels, tooltips, accessibility names, validation, and status messages must be Korean. Currency codes may remain ISO codes.
+- Support only JPY, USD, EUR in that order. Unsupported saved currencies fall back to JPY.
+- Keep the main flow to price/currency, a separate US-shipment checkbox, and two mutually exclusive goods radios: general list-eligible goods (default), and list-excluded goods such as food/supplements. Put optional shipping and item duty-rate inputs in collapsed additional settings.
+- For qualifying personal imports, the inclusive exemption threshold is USD 200 only for US-shipped list-eligible goods; all other combinations use USD 150. List exclusion does not remove the USD 150 exemption. Goods class determines the threshold, not a universal tariff rate; retain a visible editable duty assumption.
 
 ## Environment and commands
 - This repository lives on a Windows drive and is edited from WSL 2.
@@ -24,3 +28,4 @@ Build a small native Windows 11 WPF widget for foreign-price conversion to KRW a
 - Test meaningful calculation boundaries, malformed input, cache validation, and failed network requests with deterministic data. Tests must not require the live rate API.
 - Build after implementation changes. Use the Windows SDK from WSL; request execution approval when the sandbox prevents Windows interop.
 - Make small, focused Git commits as requested. Inspect diffs before committing; do not include generated output, secrets, or unrelated user changes.
+- Use plain descriptive commit messages without type prefixes such as `feat:`, `docs:`, `fix:`, or other Conventional Commit headers.

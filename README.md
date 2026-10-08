@@ -1,76 +1,83 @@
-# HowMuch
+# 얼마일까 (HowMuch)
 
-A native Windows 11 WPF widget for checking overseas shopping prices in Korean won. Always on top, fixed at 384 × 622 device-independent pixels, with a draggable title bar.
+Windows 11용 해외직구 원화·관부가세 예상 계산 위젯입니다. 화면, 도움말, 오류 안내는 한국어이며, 384 × 622 크기의 고정 창으로 항상 위에 표시됩니다.
 
-## Use
+## 사용 방법
 
-1. Launch `howmuch.exe` in Windows.
-2. Enter the price and select a currency. JPY is the initial default; later launches restore your last selection and window position.
-3. KRW price, estimated customs duty, VAT, and total update as you type. Use a dot for decimals; grouped commas such as `12,345.67` are accepted.
-4. Optionally enter international shipping and insurance in the same currency, and adjust the duty percentage for the item. Include foreign domestic shipping and local tax in the main price.
-5. Select the US option only for shipments from the US eligible for list clearance. Currency alone does not determine shipment origin. Disable personal-use exemption if the goods do not qualify.
+1. `howmuch.exe`를 Windows에서 실행합니다.
+2. 상품 가격과 통화를 입력합니다. 통화는 **JPY → USD → EUR** 순서이며, 처음에는 JPY를 선택합니다. 이후에는 마지막 통화와 창 위치를 복원합니다. 이전 버전에서 저장한 지원 종료 통화는 JPY로 대체합니다.
+3. 실제 발송지가 미국이면 **미국에서 발송**을 선택합니다. USD 결제 여부와는 별개입니다.
+4. **일반 물품(목록 통관 대상)** 또는 **식품, 건강기능식품 등 목록통관 제외 물품**을 선택합니다. 기본값은 일반 물품입니다.
+5. 원화 가격, 예상 관세, 부가세, 총액이 즉시 갱신됩니다. 필요하면 **추가 설정**을 펼쳐 국제 배송비·보험료와 품목별 관세율을 입력합니다. 창 크기는 변하지 않으며 내용이 길면 스크롤할 수 있습니다.
 
-Drag the dark title bar to move. **−** minimizes to the Windows taskbar so you can restore it later. **×** or Alt+F4 exits; launch the executable again to reopen. Window edges do not resize, and double-clicking the title bar does not maximize.
+상품 가격에는 현지 세금과 현지 배송비를 포함하세요. 국제 배송비·보험료는 같은 통화로 추가 설정에 별도 입력합니다. 소수점은 마침표를 사용하며 `12,345.67` 형식도 지원합니다.
 
-Currencies: JPY, USD, EUR, CNY, GBP, AUD, CAD, CHF, HKD, SGD, TWD, THB, KRW.
+제목 표시줄을 드래그하면 이동합니다. **−**는 작업 표시줄로 최소화, **×** 또는 Alt+F4는 종료입니다. 최소화한 창은 작업 표시줄에서 복원하고, 종료한 앱은 실행 파일로 다시 엽니다. 테두리 드래그나 제목 표시줄 더블클릭으로 크기를 바꿀 수 없습니다.
 
-## Rates and offline behavior
+## 계산 기준
 
-The widget uses the HTTPS [Frankfurter v2 API](https://frankfurter.dev/) with no API key or third-party packages. It fetches rates at startup, when switching currencies, every 30 minutes while running, and on **Refresh**. These are the latest published **daily reference rates**, not intraday bank/card quotes. The source and publication dates are shown in the widget; weekends and holidays may retain an earlier publication date.
+자가사용 소액면세 요건을 충족하는 해외직구 물품을 기준으로 계산합니다.
 
-Price changes recalculate locally without sending your entered amounts to the API. The API is queried only with currency codes. Both KRW and USD rates are fetched; USD determines the exemption threshold. When the network fails, the last valid saved rates for that currency can be used with an explicit **Offline · saved rates** label and their dates. If no valid cache exists, totals are unavailable instead of using an invented rate. Old cached rates are labeled and dated but have no hard expiry.
+| 발송지 | 물품 구분 | 상품 가격 면세 기준 |
+| --- | --- | --- |
+| 미국 | 목록통관 대상 | 미화 200달러 이하 |
+| 미국 | 목록통관 제외 | 미화 150달러 이하 |
+| 미국 외 | 목록통관 대상 | 미화 150달러 이하 |
+| 미국 외 | 목록통관 제외 | 미화 150달러 이하 |
 
-Preferences and per-currency rate caches are JSON files in `%LOCALAPPDATA%\HowMuch`. Missing, corrupt, and inaccessible files are tolerated. Deleting that folder resets preferences and offline rates.
+목록통관 제외 물품도 150달러 이하의 자가사용 물품이면 관세·부가세 소액면세가 적용됩니다. 기준을 초과하면 면세 한도를 공제하지 않고 **전체 과세가격**에 과세합니다. 별도로 구분한 국제 배송비·보험료는 면세 판단용 상품 가격에서는 제외하고, 과세 시에는 과세가격에 포함합니다.
 
-## Customs estimate
+- 과세가격 = 상품 가격 원화 환산액 + 국제 배송비·보험료 원화 환산액
+- 관세 = 과세가격 × 입력한 관세율
+- 부가세 = (과세가격 + 반올림 전 관세) × 10%
+- 총액 = 상품 가격 + 국제 배송비·보험료 + 예상 관세 + 예상 부가세
 
-The model covers ordinary qualifying personal-use imports into South Korea:
+**기본 관세율 8%는 추정용 가정이며 모든 품목의 세율이 아닙니다.** 두 물품 구분은 면세 기준을 결정하며, 정확한 세율은 품목분류·원산지·FTA 등에 따라 달라집니다. 관세청 품목별 계산기로 확인한 세율을 추가 설정에 입력하세요. 주류·담배·고가품 등의 별도 세금, 카드 수수료, 통관 수수료, 수량 제한과 합산과세는 이 계산에 포함하지 않습니다. 관세와 부가세는 각각 원 단위로 반올림하며 실제 세관 산정 규칙과 다를 수 있습니다.
 
-- Goods price up to and including USD 150 is exempt; eligible US list-clearance shipments use USD 200.
-- Separately identified international freight/insurance is excluded from the goods-price threshold but included in the taxable value when the threshold is exceeded.
-- Above the threshold, tax applies to the **entire** value, without deducting the threshold.
-- Duty = (price in KRW + international shipping/insurance in KRW) × entered duty percentage.
-- VAT = (that taxable value + unrounded duty) × 10%.
-- Total = price in KRW + shipping/insurance in KRW + estimated duty + estimated VAT. With shipping set to zero, it is price plus import charges.
+2026-10-08에 [관세청 특송물품 통관 안내](https://www2.customs.go.kr/kcs/cm/cntnts/cntntsView.do?cntntsId=819&mi=2821) 및 [해외직구 예상세액 조회](https://www.customs.go.kr/kcs/ad/tax/BuyTaxCalculation.do)를 확인했습니다. 앱에서도 관세청 계산기로 이동할 수 있습니다. 환산에는 일일 시장 기준환율을 사용하므로 실제 관세청 주간 과세환율에 따른 세액과 차이가 있을 수 있습니다.
 
-**8% is an editable starting assumption, not a universal tariff.** HS classification, origin/FTA, actual Korea Customs Service assessment rates and rounding, excluded goods, quantity limits, combined shipments, and additional taxes can change the amount. Alcohol, tobacco, luxury goods, and goods with special taxes need the official calculator. Card conversion fees, brokerage, and other handling fees are excluded. Duty and VAT estimates are individually rounded to the nearest won; conversion calculations retain decimal precision until display.
+## 환율과 설정
 
-Rules checked on 2026-10-08 against the [Korea Customs Service overseas-purchase estimator](https://www.customs.go.kr/kcs/ad/tax/BuyTaxCalculation.do) and [express-cargo clearance guidance](https://customs.go.kr/kcs_english/cm/cntnts/cntntsView.do?cntntsId=2733&mi=8057). The widget links to the official estimator for item-specific checks. Market reference rates are used for this approximation; they are not the official weekly customs assessment rates.
+HTTPS [Frankfurter v2 API](https://frankfurter.dev/)의 최신 일일 기준환율을 사용합니다. 실행·통화 변경·새로고침 및 실행 중 30분 간격으로 조회하며, 가격 변경은 저장된 환율로 즉시 계산합니다. API에는 통화 코드만 전송하고 입력 가격은 전송하지 않습니다. API 키나 외부 패키지는 필요하지 않습니다.
 
-## Build and run from WSL 2
+환율 기준일을 화면에 표시합니다. 휴일에는 이전 영업일 환율이 제공될 수 있으며 장중 실시간 환율은 아닙니다. 인터넷 오류 시 해당 통화의 저장된 환율을 날짜와 **오프라인 · 저장된 환율** 표시와 함께 사용합니다. 저장된 환율이 없으면 금액을 표시하지 않습니다. 저장된 환율에는 강제 만료 기간이 없으므로 기준일을 확인하세요.
 
-Requires the Windows .NET 8 SDK; `dotnet.exe` must be on the WSL PATH. Run from this repository on the Windows drive:
+통화·위치 설정과 통화별 환율은 `%LOCALAPPDATA%\HowMuch`의 JSON 파일에 저장합니다. 파일이 없거나 손상되어도 실행되며, 해당 폴더를 삭제하면 초기화됩니다.
+
+## WSL 2에서 빌드·실행
+
+Windows .NET 8 SDK가 필요하며 WSL PATH에서 `dotnet.exe`를 찾을 수 있어야 합니다. Windows 드라이브에 있는 이 저장소에서 실행합니다.
 
 ```bash
 dotnet.exe build howmuch.csproj -c Release
 dotnet.exe run --project howmuch.csproj -c Release
 ```
 
-This starts the app in native Windows, using WSL Windows interop. Compilation has no external package dependencies. The build output is `bin/Release/net8.0-windows/howmuch.exe` and needs the Windows .NET 8 Desktop Runtime. Keep the accompanying files with the executable.
+앱은 WSL의 Windows 연동 기능을 통해 네이티브 Windows 창으로 실행됩니다. 일반 빌드 결과는 `bin/Release/net8.0-windows/howmuch.exe`이며 Windows .NET 8 Desktop Runtime이 필요합니다. 실행 파일과 동반 파일을 함께 유지하세요.
 
-To create a portable x64 Windows folder including the runtime:
+런타임을 포함하는 Windows x64 배포 폴더:
 
 ```bash
 dotnet.exe publish howmuch.csproj -c Release -r win-x64 --self-contained true -o artifacts/win-x64
 ```
 
-Open `artifacts\win-x64\howmuch.exe` in Windows Explorer. Copy the **whole folder** to distribute it. Substitute `win-arm64` and a different output folder for ARM64 Windows. First self-contained publish may download runtime packs.
+Windows 탐색기에서 `artifacts\win-x64\howmuch.exe`를 엽니다. 배포 시 **폴더 전체**를 복사하세요. ARM64 기기에서는 `win-arm64`와 별도의 출력 폴더를 사용합니다. 첫 배포 빌드는 런타임 팩을 다운로드할 수 있습니다.
 
-## Verification
+## 검증
 
 ```bash
 dotnet.exe run --project tests/HowMuch.Checks.csproj -c Release
 dotnet.exe run --project tests/WidgetChecks/WidgetChecks.csproj -c Release
 ```
 
-The first suite runs 28 deterministic checks for threshold boundaries, shipping, full-value taxes, parsing, persistence, malformed rates, offline behavior, and cancellation. The second briefly opens a native Windows WPF widget with fake rates and temporary settings. It checks initialization, layout height, topmost/fixed-size properties, immediate conversion, invalid input, saved currency, and rapid currency switches. Neither suite calls the live API or modifies your settings. A live JPY → KRW/USD endpoint response was also verified during development.
+첫 테스트는 발송지·물품 구분별 면세 경계, 전체 금액 과세, 배송비, VAT, 통화 우선순위, 숫자 입력, 설정 저장, 잘못된 환율, 오프라인 및 취소 처리를 45개 검증합니다. 두 번째 테스트는 임시 설정과 가짜 환율을 사용해 네이티브 Windows WPF 창을 잠시 엽니다. 한국어 화면 배치, 기본 물품 선택, 지원 종료 통화 복구, 입력 즉시 계산, 미국 발송·제외 물품 전환, 추가 설정, 통화 저장, 빠른 통화 변경을 검증합니다. 테스트는 실제 환율 API나 사용자의 설정을 사용하지 않습니다.
 
-Manual Windows acceptance checks still needed:
+Windows에서 추가 수동 확인할 항목:
 
-- Drag across monitors, including mixed DPI displays; relaunch with a monitor disconnected.
-- Check always-on-top behavior over other normal windows and keyboard tab navigation.
-- Minimize/restore, close/reopen, confirm saved currency and position.
-- Disconnect Internet and refresh, then select an uncached currency; reconnect and recover.
-- Inspect appearance at 100%, 150%, and 200% scaling and with Windows accessibility settings.
+- 서로 다른 DPI의 모니터 간 드래그와 모니터 제거 후 재실행
+- 일반 창 위의 항상 위 표시 및 키보드 탐색
+- 최소화·복원, 종료·재실행 및 통화·위치 복원
+- 인터넷 해제 시 저장 환율 표시, 미저장 통화 선택, 재연결 후 복구
+- 100%·150%·200% 배율 및 접근성 설정에서 표시 확인
 
-Source layout: `Core/` contains calculations; `Services/` contains HTTPS and local storage; `MainWindow.xaml` and its code-behind handle UI interaction. See [AGENTS.md](AGENTS.md) for contributor guidance.
+`Core/`는 계산, `Services/`는 네트워크와 저장, `MainWindow.xaml`과 코드비하인드는 화면을 담당합니다. 개발 지침은 [AGENTS.md](AGENTS.md)에 있습니다.
